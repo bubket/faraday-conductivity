@@ -59,7 +59,7 @@ module Faraday
 
       def initialize(app, options = {})
         @app    = app
-        @on     = options.fetch(:on) { ClientErrorStatuses }
+        @on     = options.fetch(:on) { ClientErrorStatuses.to_a + ServerErrorStatuses.to_a }
         @except = options.fetch(:except) { [] }
       end
 
