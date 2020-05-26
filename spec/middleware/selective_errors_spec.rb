@@ -2,6 +2,28 @@ RSpec.describe Faraday::Conductivity::SelectiveErrors do
 
   subject(:request_headers) { response.env[:request_headers] }
 
+  context 'default range' do
+    before { apply_selective_errors({}) }
+
+    it 'includes client errors' do
+      expect { response_with_status(400) }.to raise_error Faraday::BadRequestError
+      expect { response_with_status(450) }.to raise_error Faraday::ClientError
+      expect { response_with_status(499) }.to raise_error Faraday::ClientError
+    end
+
+    it 'includes server errors' do
+      expect { response_with_status(500) }.to raise_error Faraday::ServerError
+      expect { response_with_status(550) }.to raise_error Faraday::ServerError
+      expect { response_with_status(599) }.to raise_error Faraday::ServerError
+    end
+
+    it 'does not include non-client non-server errors' do
+      expect { response_with_status(100) }.not_to raise_error
+      expect { response_with_status(200) }.not_to raise_error
+      expect { response_with_status(305) }.not_to raise_error
+    end
+  end
+
   it "raises an exception if the error is inside the :on argument" do
     apply_selective_errors on: 407..409
     expect { response_with_status(408) }.to raise_error Faraday::ClientError
